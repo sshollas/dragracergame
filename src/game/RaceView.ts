@@ -9,7 +9,7 @@ export class RaceView {
   app = new Application(); private world = new Container(); private car = new Container(); private road = new Graphics();
   private hud: Text; private status: Text; private rpmText: Text; private gearText: Text; private speedText: Text; private nitroText: Text; private shiftText: Text; private ready = false;
   private finishVisualStartedAt: number | null = null;
-  constructor(private host: HTMLElement, private finishDistanceM = 402.336, private carId: CarId = 'comet-r', private trackId: TrackId = 'sunset', private nitroCapacityS = 3.5) {
+  constructor(private host: HTMLElement, private finishDistanceM = 402.336, private carId: CarId = 'comet-r', private trackId: TrackId = 'sunset', private nitroCapacityS = 3.5, private shiftLightRatio = .9) {
     const style = new TextStyle({ fontFamily: 'monospace', fill: '#f6f2df', fontSize: 18, fontWeight: 'bold', dropShadow: { color: '#000', distance: 2, blur: 2 } });
     this.hud = new Text({ text: '', style }); this.status = new Text({ text: '', style: new TextStyle({ ...style, fontSize: 30, fill: '#ffcf42' }) });
     this.rpmText = new Text({ text: '', style: new TextStyle({ ...style, fontSize: 25, fill: '#ffcf42' }) });
@@ -43,6 +43,24 @@ export class RaceView {
   }
   destroy() { this.app.destroy(true, { children: true }); }
   private makeCar() {
+    if (this.carId === 'brickhouse-v8') {
+      const body = new Graphics().roundRect(0, -17, 154, 61, 7).fill('#4ea56f').roundRect(14, -9, 50, 27, 4).fill('#9bc8cb').rect(105,-26,22,11).fill('#353840');
+      body.rect(91,-31,5,30).fill('#b9b2a0');
+      for (const x of [29, 124]) body.circle(x, 45, 16).fill('#0c0e12').circle(x,45,8).fill('#aeb1aa');
+      this.car = new Container(); this.car.addChild(body); return this.car;
+    }
+    if (this.carId === 'needle-dragster') {
+      const body = new Graphics().poly([0,26,28,15,175,14,232,27,177,35,30,35]).fill('#be3347').roundRect(42,2,72,22,10).fill('#20232a');
+      body.circle(30,36,25).fill('#090a0d').circle(30,36,10).fill('#bab7ad').circle(210,33,9).fill('#090a0d').circle(210,33,4).fill('#bab7ad');
+      body.rect(5,-9,8,35).fill('#c6c2b7').rect(0,-12,32,5).fill('#be3347');
+      this.car = new Container(); this.car.addChild(body); return this.car;
+    }
+    if (this.carId === 'starbolt-x1') {
+      const body = new Graphics().poly([0,22,37,5,150,4,190,25,151,39,35,38]).fill('#d8dce2').poly([52,7,82,-11,119,2,132,8]).fill('#557d91');
+      body.poly([-28,18,2,9,2,35,-28,28]).fill('#f07b2d');
+      for (const x of [39, 153]) body.circle(x,39,13).fill('#0b0d11').circle(x,39,6).fill('#969ba1');
+      this.car = new Container(); this.car.addChild(body); return this.car;
+    }
     if (this.carId === 'apex-rs') {
       const body = new Graphics().roundRect(0, 15, 138, 29, 12).fill('#f0b92f')
         .poly([18,15,44,-3,92,-7,125,15]).fill('#f0b92f')
@@ -86,8 +104,9 @@ export class RaceView {
         this.road.roundRect(x + 65, h * .9, streakLength * .7, 3, 1).fill({ color: track.lane, alpha: alpha * .8 });
       }
     }
-    this.drawTrackLine(w * .2 + 132 - cameraDistanceM * pixelsPerMeter, h, false);
-    this.drawTrackLine(w * .2 + 132 + (this.finishDistanceM - cameraDistanceM) * pixelsPerMeter, h, true);
+    const carFront = CARS[this.carId].visualLengthPx;
+    this.drawTrackLine(w * .2 + carFront - cameraDistanceM * pixelsPerMeter, h, false);
+    this.drawTrackLine(w * .2 + carFront + (this.finishDistanceM - cameraDistanceM) * pixelsPerMeter, h, true);
   }
   private drawGauges(s: RaceState, progress: number, w: number, h: number) {
     const g = this.world.getChildByLabel('gauges') as Graphics | undefined; g?.destroy();
@@ -117,7 +136,7 @@ export class RaceView {
     gauges.roundRect(infoX + 16, panelY + panelH - 42, Math.max(40, panelW - (infoX-panelX) - 32), 10, 5).fill('#292c35');
     gauges.roundRect(infoX + 16, panelY + panelH - 42, Math.max(0, panelW - (infoX-panelX) - 32) * nitroP, 10, 5).fill('#58dbd0');
     const shiftX = infoX + Math.max(42, (panelW - (infoX - panelX)) * .62), shiftY = panelY + 49;
-    const shiftReady = s.rpm >= definition.redlineRpm * .9 && s.rpm < definition.redlineRpm * .985 && s.gear < definition.gearRatios.length;
+    const shiftReady = s.rpm >= definition.redlineRpm * this.shiftLightRatio && s.rpm < definition.redlineRpm * .985 && s.gear < definition.gearRatios.length;
     const overRev = s.rpm >= definition.redlineRpm * .985 && s.gear < definition.gearRatios.length;
     gauges.circle(shiftX, shiftY, 18).fill(shiftReady ? '#52ed89' : overRev ? '#ff4d5e' : '#24272d')
       .stroke({ color: shiftReady || overRev ? '#f5f1dc' : '#484b54', width: 3 });

@@ -27,20 +27,29 @@ export class RaceSimulator {
     const ratio = this.car.gearRatios[s.gear - 1] * this.car.finalDrive;
     const coupledRpm = s.speedMps / this.car.wheelRadiusM * ratio * 60 / (2 * Math.PI);
     const targetRpm = Math.max(this.car.idleRpm, coupledRpm);
-    s.rpm += (targetRpm - s.rpm) * Math.min(1, dt * 14);
+    s.rpm += (targetRpm - s.rpm) * Math.min(1, dt * (input.throttle ? 14 : 22));
 
     let driveForce = 0;
+    const launchDelay = this.car.launchDelayS ?? 0;
+    const launchReady = s.elapsedS >= launchDelay;
+    const powerRamp = this.car.powerRampS ?? 0;
+    const launchPower = !launchReady ? 0 : powerRamp > 0 ? Math.min(1, (s.elapsedS - launchDelay) / powerRamp) : 1;
     if (input.throttle && s.shiftingS <= 0 && s.rpm < this.car.redlineRpm * 1.04) {
       driveForce = this.torqueAt(s.rpm) * ratio * this.car.drivetrainEfficiency / this.car.wheelRadiusM;
     }
-    const nitroActive = input.nitro && input.throttle && s.nitroRemainingS > 0;
-    if (nitroActive) { driveForce += this.car.nitroForceN; s.nitroRemainingS = Math.max(0, s.nitroRemainingS - dt); }
+    const nitroActive = launchReady && input.nitro && input.throttle && s.nitroRemainingS > 0;
+    if (nitroActive) { driveForce += this.car.nitroForceN; s.nitroRemainingS = Math.max(0, s.nitroRemainingS - dt * (this.car.nitroConsumptionRate ?? 1)); }
+    driveForce *= launchPower;
     const tractionLimit = this.car.massKg * GRAVITY * this.car.gripCoefficient;
     s.wheelspin = driveForce > tractionLimit ? (driveForce - tractionLimit) / tractionLimit : 0;
     driveForce = Math.min(driveForce, tractionLimit);
     const drag = 0.5 * AIR_DENSITY * this.car.dragCoefficient * this.car.frontalAreaM2 * s.speedMps ** 2;
     const rolling = s.speedMps > 0 || driveForce > 0 ? this.car.rollingResistance * this.car.massKg * GRAVITY : 0;
-    const acceleration = (driveForce - drag - rolling) / this.car.massKg;
+    const engineBrakeTorque = !input.throttle && s.speedMps > 0 && s.shiftingS <= 0
+      ? 20 + 45 * Math.min(1, s.rpm / this.car.redlineRpm)
+      : 0;
+    const engineBraking = engineBrakeTorque * ratio * this.car.drivetrainEfficiency / this.car.wheelRadiusM;
+    const acceleration = (driveForce - drag - rolling - engineBraking) / this.car.massKg;
     const previousDistance = s.distanceM;
     s.speedMps = Math.max(0, s.speedMps + acceleration * dt);
     s.distanceM += s.speedMps * dt;

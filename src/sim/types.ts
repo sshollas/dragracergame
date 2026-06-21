@@ -4,7 +4,8 @@ export interface CarConfig {
   gearRatios: number[]; drivetrainEfficiency: number; dragCoefficient: number;
   frontalAreaM2: number; rollingResistance: number; gripCoefficient: number;
   idleRpm: number; redlineRpm: number; shiftTimeS: number;
-  nitroForceN: number; nitroCapacityS: number; torqueCurve: TorquePoint[];
+  nitroForceN: number; nitroCapacityS: number; nitroConsumptionRate?: number;
+  launchDelayS?: number; powerRampS?: number; torqueCurve: TorquePoint[];
 }
 export interface RaceInput { throttle: boolean; nitro: boolean; shiftUp: boolean; shiftDown: boolean; }
 export interface RaceState {

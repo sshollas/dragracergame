@@ -39,8 +39,13 @@ At the finish line, the camera stops tracking while the car continues through at
 
 - Comet R is included from the beginning.
 - Apex RS is a lighter, more powerful six-speed sports car available from the garage dealer for $25,000.
+- Brickhouse V8 is a heavy van with ten upgrade levels and a very high tuning ceiling.
+- Needle Dragster is a long, light quarter-mile specialist with narrow front wheels and huge rear tires.
+- Starbolt X1 has a delayed power ramp but is designed for extreme long-distance top speed.
 
 Cars have separate upgrade levels. Existing saves are migrated automatically to the multi-car profile format without losing Comet R progression.
+
+Maxing every workshop category on a car unlocks Pro Setup: short/balanced/long final drive, endurance/balanced/burst NOS flow, adjustable shift-light timing, and launch/balanced/top-speed tire setups. These settings persist per car.
 
 The workshop also includes a five-level NOS system upgrade. Each level increases boost force by 12% and capacity by 0.4 seconds.
 
@@ -51,6 +56,15 @@ The workshop also includes a five-level NOS system upgrade. Each level increases
 - Polar Run: an arctic ice road with snow and ice formations
 
 Visual track selection is independent of race distance and persists in the local profile.
+
+## Audio
+
+The race uses procedural Web Audio for RPM-driven engine tone, throttle volume, wheelspin, wind, NOS, shifts, start lights, and finish feedback. Audio starts from the race button user gesture to comply with browser autoplay policies and can be muted during a race.
+Continuous race audio fades out over three seconds during the post-finish run-out while the finish signal remains audible.
+
+## Local development access
+
+Running `npm run dev` grants the local profile $10,000,000 and ownership of every car for testing. This uses Vite's development flag and is excluded from production builds and Vercel deployments.
 
 ## Architecture
 
@@ -66,6 +80,8 @@ Visual track selection is independent of race distance and persists in the local
 ## Simulator assumptions
 
 This is an approachable arcade model rather than a vehicle-dynamics package. Engine torque is linearly interpolated from a configurable RPM/torque curve. Gear and final-drive ratios convert torque to wheel force. Available force is capped by a simple tire friction limit; force beyond the limit is reported as wheelspin. Aerodynamic drag scales with speed squared, while rolling resistance is constant. Nitro adds wheel force while throttle is held and capacity remains. Shifts briefly interrupt drive force.
+
+Releasing throttle applies RPM- and gear-dependent engine braking. This makes RPM fall more aggressively in low gears and requires sustained throttle to keep the engine in its power band.
 
 The race ends at exactly 402.336 m. Finish time is interpolated within the last simulation step to reduce fixed-step timing error.
 
