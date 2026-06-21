@@ -9,7 +9,7 @@ export class RaceView {
   app = new Application(); private world = new Container(); private car = new Container(); private road = new Graphics();
   private hud: Text; private status: Text; private rpmText: Text; private gearText: Text; private speedText: Text; private nitroText: Text; private shiftText: Text; private ready = false;
   private finishVisualStartedAt: number | null = null;
-  constructor(private host: HTMLElement, private finishDistanceM = 402.336, private carId: CarId = 'comet-r', private trackId: TrackId = 'sunset', private nitroCapacityS = 3.5, private shiftLightRatio = .9) {
+  constructor(private host: HTMLElement, private finishDistanceM = 402.336, private carId: CarId = 'comet-r', private trackId: TrackId = 'sunset', private nitroCapacityS = 3.5, private shiftLightRatio = .9, private maxGears?: number) {
     const style = new TextStyle({ fontFamily: 'monospace', fill: '#f6f2df', fontSize: 18, fontWeight: 'bold', dropShadow: { color: '#000', distance: 2, blur: 2 } });
     this.hud = new Text({ text: '', style }); this.status = new Text({ text: '', style: new TextStyle({ ...style, fontSize: 30, fill: '#ffcf42' }) });
     this.rpmText = new Text({ text: '', style: new TextStyle({ ...style, fontSize: 25, fill: '#ffcf42' }) });
@@ -136,8 +136,9 @@ export class RaceView {
     gauges.roundRect(infoX + 16, panelY + panelH - 42, Math.max(40, panelW - (infoX-panelX) - 32), 10, 5).fill('#292c35');
     gauges.roundRect(infoX + 16, panelY + panelH - 42, Math.max(0, panelW - (infoX-panelX) - 32) * nitroP, 10, 5).fill('#58dbd0');
     const shiftX = infoX + Math.max(42, (panelW - (infoX - panelX)) * .62), shiftY = panelY + 49;
-    const shiftReady = s.rpm >= definition.redlineRpm * this.shiftLightRatio && s.rpm < definition.redlineRpm * .985 && s.gear < definition.gearRatios.length;
-    const overRev = s.rpm >= definition.redlineRpm * .985 && s.gear < definition.gearRatios.length;
+    const gearCount = this.maxGears ?? definition.gearRatios.length;
+    const shiftReady = s.rpm >= definition.redlineRpm * this.shiftLightRatio && s.rpm < definition.redlineRpm * .985 && s.gear < gearCount;
+    const overRev = s.rpm >= definition.redlineRpm * .985 && s.gear < gearCount;
     gauges.circle(shiftX, shiftY, 18).fill(shiftReady ? '#52ed89' : overRev ? '#ff4d5e' : '#24272d')
       .stroke({ color: shiftReady || overRev ? '#f5f1dc' : '#484b54', width: 3 });
     if (shiftReady) gauges.circle(shiftX, shiftY, 25).stroke({ color: '#52ed89', width: 2, alpha: .45 });

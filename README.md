@@ -23,7 +23,7 @@ npm run build
 - `ArrowDown`: shift down
 - `N`: nitro
 
-Touch controls are shown below the race canvas. Shift close to the redline, manage traction, and use nitro to improve your elapsed time. Completed races award money. Garage upgrades and the top ten local runs persist in `localStorage`.
+Desktop shows a compact keyboard reference without clickable controls. Touch devices get large multitouch controls for throttle, NOS, and shifting below the race canvas. Shift close to the redline, manage traction, and use nitro to improve your elapsed time. Completed races award money. Garage upgrades and the top ten local runs persist in `localStorage`.
 
 ## Race events
 
@@ -45,7 +45,7 @@ At the finish line, the camera stops tracking while the car continues through at
 
 Cars have separate upgrade levels. Existing saves are migrated automatically to the multi-car profile format without losing Comet R progression.
 
-Maxing every workshop category on a car unlocks Pro Setup: short/balanced/long final drive, endurance/balanced/burst NOS flow, adjustable shift-light timing, and launch/balanced/top-speed tire setups. These settings persist per car.
+Maxing every workshop category on a car unlocks Pro Setup: 2–8 gears, early/balanced/late final-gear progression, short/balanced/long final drive, endurance/balanced/burst NOS flow, adjustable shift-light timing, and launch/balanced/top-speed tire setups. These settings persist per car.
 
 The workshop also includes a five-level NOS system upgrade. Each level increases boost force by 12% and capacity by 0.4 seconds.
 

@@ -61,10 +61,12 @@ describe('RaceSimulator', () => {
   });
   it('Pro Setup changes gearing and NOS delivery without adding energy', () => {
     const levels = {engine:5,turbo:5,nitro:5,tires:5,gearbox:5,weight:5};
-    const endurance = buildCar(levels,'comet-r',{finalDrive:'long',nitroFlow:.65,shiftLightRatio:.85,tireSetup:'speed'});
-    const burst = buildCar(levels,'comet-r',{finalDrive:'short',nitroFlow:1.45,shiftLightRatio:.95,tireSetup:'launch'});
+    const endurance = buildCar(levels,'comet-r',{finalDrive:'long',gearCount:6,gearProgression:'late',nitroFlow:.65,shiftLightRatio:.85,tireSetup:'speed'});
+    const burst = buildCar(levels,'comet-r',{finalDrive:'short',gearCount:4,gearProgression:'early',nitroFlow:1.45,shiftLightRatio:.95,tireSetup:'launch'});
     expect(endurance.finalDrive).toBeLessThan(burst.finalDrive);
     expect(endurance.nitroForceN).toBeLessThan(burst.nitroForceN);
     expect(endurance.nitroConsumptionRate ?? 1).toBeLessThan(burst.nitroConsumptionRate ?? 1);
+    expect(endurance.gearRatios).toHaveLength(6); expect(burst.gearRatios).toHaveLength(4);
+    expect(endurance.gearRatios.at(-1)!).toBeLessThan(burst.gearRatios.at(-1)!);
   });
 });

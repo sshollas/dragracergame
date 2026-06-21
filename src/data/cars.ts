@@ -3,8 +3,9 @@ import type { CarConfig, UpgradeLevels, UpgradeType } from '../sim/types';
 export type CarId = 'comet-r' | 'apex-rs' | 'brickhouse-v8' | 'needle-dragster' | 'starbolt-x1';
 export type FinalDriveTune = 'short' | 'balanced' | 'long';
 export type TireTune = 'launch' | 'balanced' | 'speed';
-export interface CarTune { finalDrive: FinalDriveTune; nitroFlow: number; shiftLightRatio: number; tireSetup: TireTune; }
-export const DEFAULT_TUNE: CarTune = { finalDrive: 'balanced', nitroFlow: 1, shiftLightRatio: .9, tireSetup: 'balanced' };
+export type GearProgressionTune = 'early' | 'balanced' | 'late';
+export interface CarTune { finalDrive: FinalDriveTune; gearCount: number; gearProgression: GearProgressionTune; nitroFlow: number; shiftLightRatio: number; tireSetup: TireTune; }
+export const DEFAULT_TUNE: CarTune = { finalDrive: 'balanced', gearCount: 0, gearProgression: 'balanced', nitroFlow: 1, shiftLightRatio: .9, tireSetup: 'balanced' };
 export interface CarDefinition { id: CarId; name: string; price: number; tagline: string; maxUpgradeLevel: number; torquePerLevel: number; weightStepKg: number; visualLengthPx: number; config: CarConfig; }
 
 export const BASE_CAR: CarConfig = {
@@ -78,10 +79,17 @@ export function buildCar(levels: UpgradeLevels, carId: CarId = 'comet-r', tune: 
   const finalDriveMultiplier = tune.finalDrive === 'short' ? 1.12 : tune.finalDrive === 'long' ? .88 : 1;
   const gripMultiplier = tune.tireSetup === 'launch' ? 1.08 : tune.tireSetup === 'speed' ? .96 : 1;
   const rollingMultiplier = tune.tireSetup === 'launch' ? 1.08 : tune.tireSetup === 'speed' ? .78 : 1;
+  const gearCount = tune.gearCount >= 2 ? Math.min(8, tune.gearCount) : base.gearRatios.length;
+  const topGearMultiplier = tune.gearProgression === 'early' ? 1.12 : tune.gearProgression === 'late' ? .82 : 1;
+  const firstGear = base.gearRatios[0], topGear = base.gearRatios[base.gearRatios.length - 1] * topGearMultiplier;
+  const gearRatios = gearCount === base.gearRatios.length && tune.gearProgression === 'balanced'
+    ? [...base.gearRatios]
+    : Array.from({ length: gearCount }, (_, index) => firstGear * Math.pow(topGear / firstGear, index / Math.max(1, gearCount - 1)));
   return {
     ...base,
     massKg: Math.max(base.massKg * .65, base.massKg - levels.weight * definition.weightStepKg),
     finalDrive: base.finalDrive * finalDriveMultiplier,
+    gearRatios,
     rollingResistance: base.rollingResistance * rollingMultiplier,
     gripCoefficient: base.gripCoefficient * (1 + levels.tires * 0.08) * gripMultiplier,
     shiftTimeS: Math.max(0.055, base.shiftTimeS - levels.gearbox * 0.018),
